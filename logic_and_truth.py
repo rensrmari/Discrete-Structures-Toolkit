@@ -2,63 +2,6 @@ import math
 import re
 import utility
 
-def prompt_user_exp(message):
-    '''Prompts the user for a valid expression.
-    Args:
-        message: A prompt.
-    Returns:
-        Proposition: A valid expression.'''
-    prop = Proposition()
-    user_exp = input(message)
-
-    while not prop.set_expression(user_exp):
-        user_exp = input(f'\nInvalid input. {message}')
-
-    return prop
-
-def create_truth_table():
-    # Prompt user for expression.
-    prop = prompt_user_exp('Please enter a statement: ')
-
-    # Create and display truth table.
-    table = TruthTable(prop)
-    table.print_table()
-    utility.prompt_user_character('Enter anything to go back: ')
-
-def create_deduction():
-    # Prompt user for two expressions and a deduction.
-    prop1, prop2, deduction = prompt_user_exp('Please enter the first statement: '), \
-                                prompt_user_exp('Please enter the second statement: '), \
-                                prompt_user_exp('Please enter a deduction: ')
-
-    # Check if the deduction only uses existing variables.
-    vars = list(prop1.get_vars().keys()) + list(prop2.get_vars().keys())
-    for deduct_var in list(deduction.get_vars().keys()):
-        if deduct_var not in vars:
-            print('\nDeduction rule should not contain new variables.')
-    else:
-        # Combine expressions in a truth table.
-        table = TruthTable(prop1)
-        table.extend(prop2)
-        table.extend(deduction)
-        table.print_table()
-
-        # Iterate through rows of each column and determine if the expressions are true in the same rows.
-        valid_rule = True
-        for i in range(table.column_size):
-            truth_prop1 = table.get_table()[prop1.get_display_exp()][i]
-            truth_prop2 = table.get_table()[prop2.get_display_exp()][i]
-            truth_deduction = table.get_table()[deduction.get_display_exp()][i]
-
-            if truth_prop1 and truth_prop2 and not truth_deduction: # Premises are true but conclusion is not
-                valid_rule = False
-                break
-        
-        if valid_rule:
-            print('\nValid deduction rule!')
-        else:
-            print('\nDeduction rule does not work.')
-
 def replace_substrings(exp, dict):
     '''Replaces an expression according to a supplied dictionary.
     Args:
@@ -139,8 +82,160 @@ def replace_variables(exp, name, dict):
     Returns:
         string: A modified expression.'''
     for key in dict:
-        exp = exp.replace(key, f'{name}[\'{key}\']')
+        # Locate the variable by itself.
+        pattern = re.compile(rf'\b{key}\b')
+        exp = pattern.sub(f'{name}[\'{key}\']', exp)
     return exp
+
+def prompt_user_exp(message):
+    '''Prompts the user for a valid expression.
+    Args:
+        message: A prompt.
+    Returns:
+        Proposition: A valid expression.'''
+    prop = Proposition()
+    user_exp = input(message)
+
+    while not prop.set_expression(user_exp):
+        user_exp = input(f'\nInvalid input. {message}')
+
+    return prop
+
+def print_changes(orig_exp, new_exp, to_print, message):
+    '''Prints any changes to expressions.
+    Args:
+        orig_exp: The original expression.
+        new_exp: The new expression.
+        to_print: Whether or not the change should be printed.
+        message: A message to accompany the displayed change.'''
+    
+    if to_print:
+        prop = Proposition()
+        prop.set_expression(new_exp)
+        
+        if new_exp != orig_exp:
+            print(f'\n{message}')
+            print(f'New Statement: {prop.get_display_exp()}')
+
+def simplify_conditionals(exp, bi, to_print=False):
+    '''Converts biconditionals to conditionals, or conditionals to their disjunction form.
+    Args:
+        exp: The string containing the used expression.
+        bi: Whether or not the supplied expression contains biconditionals.
+        to_print: Whether or not the process should be printed.
+    Returns:
+        string: The modified expression.'''
+    orig_exp = exp
+    pattern = re.compile(r'(\(.*\)|[^ (]+) (iff|IFF) (\(.*\)|[^ (]+)') if bi else re.compile(r'(\(.*\)|[^ (]+) (implies|IMPLIES)')
+    exp = pattern.sub(r'(\1 implies \3) and (\3 implies \1)' if bi else r'not \1 or', exp)
+    
+    print_changes(orig_exp, exp, to_print, f'Simplifying {'bi' if bi else ''}conditionals...')
+    return exp
+
+def simplify_negations(exp, to_print=False):
+    '''Simplifies negations by distributing them and cancelling duplicates.
+    Args:
+        exp: The expression to use.
+        to_print: Whether or not the process should be printed.
+    Returns:
+        string: The modified expression.'''
+    
+    while True:
+        orig_exp = exp
+
+        # Look for substrings that need to distribute a not or duplicate nots.
+        dist = re.compile(r'not\s*\((.*)\)')
+        dist_matches = dist.findall(exp)
+
+        dup = re.compile(r'not not')
+        dup_matches = dup.findall(exp)
+        
+        if not dist_matches and not dup_matches:
+            break
+
+        # Distribute the negation and invert any conjunctions or disjunctions.
+        exp = dist.sub(r'\1', exp)
+
+        for match in dist_matches:
+            inside = match.strip()
+            words = inside.split(' ')
+            new_words = []
+
+            for word in words:
+                if word == 'and':
+                    new_words.append('or')
+                elif word == 'or':
+                    new_words.append('and')
+                else:
+                    new_words.append(f'not {word}')
+
+            for i, new_word in enumerate(new_words):
+                exp = exp.replace(words[i], new_word, 1)
+
+        # Eliminate duplicate nots.
+        exp = dup.sub('', exp)
+        print_changes(orig_exp, exp, to_print, 'Simplifying negations...')
+    
+    return exp
+
+def create_truth_table():
+    # Prompt user for expression.
+    prop = prompt_user_exp('Please enter a statement: ')
+
+    # Create and display truth table.
+    table = TruthTable(prop)
+    table.print_table()
+    utility.prompt_user_character('Enter anything to go back: ')
+
+def create_deduction():
+    # Prompt user for two expressions and a deduction.
+    prop1, prop2, deduction = prompt_user_exp('Please enter the first statement: '), \
+                                prompt_user_exp('Please enter the second statement: '), \
+                                prompt_user_exp('Please enter a deduction: ')
+
+    # Check if the deduction only uses existing variables.
+    vars = list(prop1.get_vars().keys()) + list(prop2.get_vars().keys())
+    for deduct_var in list(deduction.get_vars().keys()):
+        if deduct_var not in vars:
+            print('\nDeduction rule should not contain new variables.')
+            break
+    else:
+        # Combine expressions in a truth table.
+        table = TruthTable(prop1)
+        table.extend(prop2)
+        table.extend(deduction)
+        table.print_table()
+
+        # Iterate through rows of each column and determine if the expressions are true in the same rows.
+        valid_rule = True
+        for i in range(table.column_size):
+            truth_prop1 = table.get_table()[prop1.get_display_exp()][i]
+            truth_prop2 = table.get_table()[prop2.get_display_exp()][i]
+            truth_deduction = table.get_table()[deduction.get_display_exp()][i]
+
+            if truth_prop1 and truth_prop2 and not truth_deduction: # Premises are true but conclusion is not
+                valid_rule = False
+                break
+        
+        if valid_rule:
+            print('\nValid deduction rule!')
+        else:
+            print('\nDeduction rule does not work.')
+
+def break_statement():
+    # Prompt user for expression.
+    prop = prompt_user_exp('Please enter a statement: ')
+    print(f'\nStatement: {prop.get_display_exp()}')
+
+    # Break down biconditionals and conditionals.
+    prop.set_expression(simplify_conditionals(prop.get_expression(), True, True))
+    prop.set_expression(simplify_conditionals(prop.get_expression(), False, True))
+
+    # Simplify negations.
+    prop.set_expression(simplify_negations(prop.get_expression(), True))
+
+    print('\nStatement has been broken down fully.')
+    utility.prompt_user_character('Enter anything to go back: ')
 
 class Proposition:
     def __init__(self):
@@ -188,10 +283,8 @@ class Proposition:
         exp = replace_substrings(exp, operators)
 
         # Replace biconditionals and conditionals.
-        pattern = re.compile(r'(\(.*\)|[^ (]+) (iff|IFF) (\(.*\)|[^ (]+)')
-        exp = pattern.sub(r'(\1 implies \3) and (\3 implies \1)', exp)
-        pattern = re.compile(r'(\(.*\)|[^ (]+) (implies|IMPLIES)')
-        exp = pattern.sub(r'not \1 or', exp)
+        exp = simplify_conditionals(exp, True)
+        exp = simplify_conditionals(exp, False)
     
         # Get variables, ignoring parentheses, spaces, and operators.
         words = exp.split(' ')
@@ -217,6 +310,12 @@ class Proposition:
         
         return True
     
+    def get_expression(self):
+        '''Gets the original expression of the proposition.
+        Returns:
+            string: The original expression.'''
+        return self.exp
+    
     def eval_expression(self):
         '''Evaluates its expression.
         Returns:
@@ -234,12 +333,6 @@ class Proposition:
         Returns:
             dictionary: Variables mapped to values.'''
         return self.vars['vars']
-    
-    def get_res(self):
-        '''Gets the truth values of the full expression.
-        Returns:
-            list: A list containing the truth values of the full expression.'''
-        
 
     def update_vars_binary(self, str):
         '''Updates the values of variables according to a binary string.

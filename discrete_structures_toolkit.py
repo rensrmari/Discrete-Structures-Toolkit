@@ -23,8 +23,9 @@ def display_main_menu():
 def display_logic_and_truth():
     '''Displays the logic and truth table menu.'''
     print('\n[LOGIC AND TRUTH TABLES]')
-    print('\t(C) Create a truth table')
-    print('\t(T) Test a deduction rule')
+    print('\t(C) Create a Truth Table')
+    print('\t(T) Test a Deduction Rule')
+    print('\t(S) Simplify an Expression')
     print('\t(G) User Guide')
 
 def handle_logic_and_truth():
@@ -33,25 +34,25 @@ def handle_logic_and_truth():
         display_logic_and_truth()
         ch = utility.prompt_user_character('Enter a character, or anything else to go back: ')
 
-        # Truth table logic.
         if ch == 'C':
             print('\n[TRUTH TABLE]')
             logic_and_truth.create_truth_table()
-
-        # Deduction logic.  
         elif ch == 'T':
             print('\n[DEDUCTION RULE]')
-            logic_and_truth.create_deduction()
-
-        # User guide.
+            logic_and_truth.create_deduction() 
+        elif ch == 'S':
+            print('\n[STATEMENT SIMPLIFICATION]')
+            logic_and_truth.break_statement()
         elif ch == 'G':
-            guide = 'This option allows you to create expressions and see how their variables interact to result in a truth value.\n\
+            guide = 'This option allows you to create propositional statements and see how their variables interact to result in a truth value.\n\
 These results can be condensed into a truth table, which you can view with option (C).\n\n\
-Additionally, you may also write two expressions and verify if third expression, or deduction rule, is valid through (T).\n\
-These deduction rules must only be composed of variables found in the preceding expressions.\n\n\
+Additionally, you may also write two statements and verify if third statement, or deduction rule, is valid through (T).\n\
+These deduction rules must only be composed of variables found in the preceding statements.\n\n\
+Lastly, you may enter statements to observe how they break down into their more atomic forms.\n\n\
 Expression Info:\n\
-\t- The available operators are as follows: xor, and, or, not\n\
-\t- Variables and operators must be separated by spaces'
+\t- The available operators are as follows: xor, and, or, not, implies, iff\n\
+\t- Variables and operators must be separated by spaces\n\
+\t- Parentheses cannot be used as a part of variables'
 
             print('\n[LOGIC AND TRUTH TABLES GUIDE]')
             print(guide)
@@ -74,6 +75,7 @@ def main():
         elif ch == 'A':
             pass
         elif ch == 'Q':
+            print('\n Thank you for using the Discrete Structures Toolkit.')
             sys.exit()
         else:
             print('Invalid character.')
