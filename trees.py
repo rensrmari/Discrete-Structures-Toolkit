@@ -59,7 +59,7 @@ def dfs(root, visited, node, value):
 def search_tree(root):
     # Display tree.
     print('Tree:')
-    print_tree(root)
+    print_tree(root, '')
 
     # Get value.
     value = input('Enter a value to look for: ')
