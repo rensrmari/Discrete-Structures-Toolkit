@@ -26,47 +26,11 @@ def display_sets():
     for name, user_set in user_sets.items():
         print_set(name, user_set)
 
-def check_element(to_check, element, should_exist):
-    '''Checks whether an element satisfies the conditions.
-    Args:
-        to_check: The set to check.
-        element: The element in question.
-        should_exist: Whether or not the element should exist.
-    Returns:
-        boolean: Whether or not the element is satisfactory.'''
-    satisfied = True
-
-    if should_exist:
-        if element not in to_check:
-            satisfied = False
-    else:
-        if element in to_check:
-            satisfied = False
-
-    return satisfied
-
-def prompt_element(prompt, message, to_check, should_exist):
-    '''Prompts the user for an element of a set.
-    Args:
-        prompt: The prompt.
-        message: A message that is output when the condition is not satisfied.
-        to_check: The set to check.
-        should_exist: Whether the condition should be satisfied when the element exists.
-    Returns:
-        string: The element.'''
-    while True:
-        element = input(f'{prompt}: ')
-
-        if not check_element(to_check, element, should_exist):
-            print(f'\n{message}', end=' ')
-        else:
-            return element
-
 def add_element_set(user_set):
     '''Adds an element to a set.
     Args:
         user_set: The set to update.'''
-    user_element = prompt_element('Enter an element', 'Element already exists.', user_set, False)
+    user_element = utility.prompt_element('Enter an element', 'Element already exists.', user_set, False)
     user_set.add(user_element)
     print(f'{user_element} added.\n')
 
@@ -80,7 +44,7 @@ def remove_element_set(user_set):
         print('No more elements to remove.')
         return
     
-    user_element = prompt_element('Enter an element', 'Element does not exist.', user_set, True)
+    user_element = utility.prompt_element('Enter an element', 'Element does not exist.', user_set, True)
     user_set.remove(user_element)
 
 def create_set(dict, dict_name, new_set):
@@ -91,7 +55,7 @@ def create_set(dict, dict_name, new_set):
         new_set: The set to be saved.
     Returns:
         str: The name of the set.'''
-    name = prompt_element(f'Enter a unique name for {dict_name}', 'This name is already taken.', dict, False)
+    name = utility.prompt_element(f'Enter a unique name for {dict_name}', 'This name is already taken.', dict, False)
     dict[name] = new_set
     print(f'\n"{name}" successfully saved!')
     return name
@@ -141,7 +105,7 @@ def edit_set(type, dict, print_func, display_func, add_func, remove_func):
 
     # Prompt user for a set.
     display_func()
-    name = prompt_element(f'Select an existing {type} to edit', f'This {type} does not exist.', dict, True)
+    name = utility.prompt_element(f'Select an existing {type} to edit', f'This {type} does not exist.', dict, True)
     user_set = dict[name]
 
     # New menu for editing.
@@ -151,32 +115,6 @@ def edit_set(type, dict, print_func, display_func, add_func, remove_func):
     }
 
     utility.handle_options(f'\n[{type.upper()} EDITOR]', options, True, print_func=(print_func, (name, user_set)))
-
-def delete_set(dict, display_func, type):
-    '''Allows the user to delete an existing set.
-    Args:
-        dict: The dictionary from which to choose the set.
-        display_func: How to display the dictionary.
-        type: The string representing the set.'''
-    print(f'\n[{type.upper()} DELETION]')
-    # Check if sets exist.
-    if not dict:
-        print(f'No {type} to delete.')
-        return
-
-    # Prompt user for a set.
-    display_func()
-    print()
-    name = prompt_element(f'Select a {type} to delete', f'This {type} does not exist.', dict, True)
-    
-    # Confirm with user.
-    confirm = utility.prompt_user_character(f'\nAre you sure you want to delete "{name}" (Y/N)? ', ('Y', 'N'), False)
-    
-    if confirm == 'Y':
-        del dict[name]
-        print(f'\nDeleted "{name}".')
-    else:
-        print(f'\n"{name}" was not deleted.')
 
 def operate_given(op):
     '''Creates a new set from a set operation.
@@ -190,8 +128,8 @@ def operate_given(op):
         return
     
     # Prompt for two sets.
-    set1 = user_sets[prompt_element('Enter the first set:', 'Set does not exist.', user_sets, True)]
-    set2 = user_sets[prompt_element('Enter the second set:', 'Set does not exist.', user_sets, True)]
+    set1 = user_sets[utility.prompt_element('Enter the first set:', 'Set does not exist.', user_sets, True)]
+    set2 = user_sets[utility.prompt_element('Enter the second set:', 'Set does not exist.', user_sets, True)]
     res = set()
 
     # Operate.
@@ -227,7 +165,7 @@ def view_sets():
     options = {
         ('B', 'Build a New Set'): (build_new_set, tuple()),
         ('M', 'Modify a Set'): (edit_set, ('set', user_sets, print_set, display_sets, add_element_set, remove_element_set)),
-        ('D', 'Delete a Set'): (delete_set, (user_sets, display_sets, 'set')),
+        ('D', 'Delete a Set'): (utility.delete_set, (user_sets, display_sets, 'set')),
         ('O', 'Operate on a Set'): (operate_set, tuple())
     }
 
@@ -256,12 +194,12 @@ def prompt_pair(message, relation, should_exist):
         output_set = relation.get_io('OUTPUT')[1]
 
         # Get elements from the relation's sets.
-        input_element = prompt_element('Enter an element from the input set', 'This element does not exist.', input_set, True)
-        output_element = prompt_element('Enter an element from the output set', 'This element does not exist.', output_set, True)
+        input_element = utility.prompt_element('Enter an element from the input set', 'This element does not exist.', input_set, True)
+        output_element = utility.prompt_element('Enter an element from the output set', 'This element does not exist.', output_set, True)
         pair = (input_element, output_element)
 
         # Determine whether the pair satisfies the condition.
-        if not check_element(relation.get_roster(), pair, should_exist):
+        if not utility.check_element(relation.get_roster(), pair, should_exist):
             print(f'\n{message}')
         else:
             return (input_element, output_element)
@@ -387,7 +325,7 @@ def build_new_relation():
 
             if decision == 'C':
                 if len(user_sets) > 0:
-                    user_name = prompt_element('Enter your set', 'Set does not exist.', user_sets, True)
+                    user_name = utility.prompt_element('Enter your set', 'Set does not exist.', user_sets, True)
                     user_set = user_sets[user_name]
                 else:
                     print('Insufficient sets.')
@@ -479,7 +417,7 @@ def is_equivalence_relation():
     # Prompt user for a relation.
     display_relations()
     print()
-    name = prompt_element('Enter the name of a relation', 'Relation does not exist.', user_rels, True)
+    name = utility.prompt_element('Enter the name of a relation', 'Relation does not exist.', user_rels, True)
     relation = user_rels[name]
 
     # Check for properties.
@@ -506,7 +444,7 @@ def view_relations():
     options = {
         ('B', 'Build a New Relation'): (build_new_relation, tuple()),
         ('M', 'Modify a Relation'): (edit_set, ('relation', user_rels, print_relation, display_relations, add_element_relation, remove_element_relation)),
-        ('D', 'Delete a Relation'): (delete_set, (user_rels, display_relations, 'relation')),
+        ('D', 'Delete a Relation'): (utility.delete_set, (user_rels, display_relations, 'relation')),
         ('E', 'Equivalence Relation Check'): (is_equivalence_relation, tuple()),
     }
 
