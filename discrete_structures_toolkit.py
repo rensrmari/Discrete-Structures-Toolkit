@@ -9,42 +9,12 @@
 
 import sys
 import logic_and_truth
+import sets_and_relations
 import utility
 
-def display_main_menu():
-    '''Prints the main menu.'''
-    print('\n[DISCRETE STRUCTURES TOOLKIT]')
-    print('\t(L) Logic and Truth Tables')
-    print('\t(S) Sets and Relations')
-    print('\t(T) Trees')
-    print('\t(A) Algorithms')
-    print('\t(Q) Quit')
-
-def display_logic_and_truth():
-    '''Displays the logic and truth table menu.'''
-    print('\n[LOGIC AND TRUTH TABLES]')
-    print('\t(C) Create a Truth Table')
-    print('\t(T) Test a Deduction Rule')
-    print('\t(S) Simplify an Expression')
-    print('\t(G) User Guide')
-
-def handle_logic_and_truth():
-    while True:
-        # Display options.
-        display_logic_and_truth()
-        ch = utility.prompt_user_character('Enter a character, or anything else to go back: ')
-
-        if ch == 'C':
-            print('\n[TRUTH TABLE]')
-            logic_and_truth.create_truth_table()
-        elif ch == 'T':
-            print('\n[DEDUCTION RULE]')
-            logic_and_truth.create_deduction() 
-        elif ch == 'S':
-            print('\n[STATEMENT SIMPLIFICATION]')
-            logic_and_truth.break_statement()
-        elif ch == 'G':
-            guide = 'This option allows you to create propositional statements and see how their variables interact to result in a truth value.\n\
+def display_logic_and_truth_guide():
+    '''Displays the logic and truth guide.'''
+    guide = 'This option allows you to create propositional statements and see how their variables interact to result in a truth value.\n\
 These results can be condensed into a truth table, which you can view with option (C).\n\n\
 Additionally, you may also write two statements and verify if third statement, or deduction rule, is valid through (T).\n\
 These deduction rules must only be composed of variables found in the preceding statements.\n\n\
@@ -54,30 +24,58 @@ Expression Info:\n\
 \t- Variables and operators must be separated by spaces\n\
 \t- Parentheses cannot be used as a part of variables'
 
-            print('\n[LOGIC AND TRUTH TABLES GUIDE]')
-            print(guide)
-            utility.prompt_user_character('Enter anything to go back: ')
-        else:
-            return
+    print('\n[LOGIC AND TRUTH TABLES GUIDE]')
+    print(guide)
+    utility.prompt_user_character('Enter anything to go back: ')
+    return
+
+def handle_logic_and_truth():
+    '''Handles the logic and truth tables option.'''
+
+    options = {
+        ('C', 'Create a Truth Table'): (logic_and_truth.create_truth_table, tuple()),
+        ('T', 'Test a Deduction Rule'): (logic_and_truth.create_deduction, tuple()),
+        ('S', 'Simplify an Expression'): (logic_and_truth.break_statement, tuple()),
+        ('G', 'User Guide'): (display_logic_and_truth_guide, tuple())
+    }
+
+    utility.handle_options('\nLOGIC AND TRUTH TABLES', options, True)
+
+def display_sets_and_relations():
+    '''Displays the sets and relations menu.'''
+    print('\n[SETS AND RELATIONS]')
+    print('\t(S) View Sets')
+    print('\t(R) View Relations')
+    print('\t(G) User Guide')
+
+def display_sets_and_relations_guide():
+    '''Displays the sets and relations guide.'''
+    guide = ''
+
+    print('\n[SETS AND RELATIONS GUIDE]')
+    print(guide)
+    utility.prompt_user_character('Enter anything to go back: ')
+    return
+
+def handle_sets_and_relations():
+    '''Handles the sets and relations option.'''
+    options = {
+        ('S', 'View Sets'): (sets_and_relations.view_sets, tuple()),
+        ('R', 'View Relations'): (sets_and_relations.view_relations, tuple()),
+        ('G', 'User Guide'): (display_sets_and_relations_guide, tuple())
+    }
+
+    utility.handle_options('\n[SETS AND RELATIONS]', options, True)
 
 def main():
-    while True:
-        # Display main menu options.
-        display_main_menu()
-        ch = utility.prompt_user_character('Enter a character: ')
+    options = {
+        ('L', 'Logic and Truth Tables'): (handle_logic_and_truth, tuple()),
+        ('S', 'Sets and Relations'): (handle_sets_and_relations, tuple()),
+        ('T', 'Trees'): None,
+        ('A', 'Algorithms'): None,
+        ('Q', 'Quit'): (lambda: (print('\nThank you for using the Discrete Structures Toolkit.'), sys.exit()), tuple())
+    }
 
-        if ch == 'L':
-            handle_logic_and_truth()
-        elif ch == 'S':
-            pass
-        elif ch == 'T':
-            pass
-        elif ch == 'A':
-            pass
-        elif ch == 'Q':
-            print('\n Thank you for using the Discrete Structures Toolkit.')
-            sys.exit()
-        else:
-            print('Invalid character.')
+    utility.handle_options('\n[DISCRETE STRUCTURES TOOLKIT]', options, False)
 
 main()

@@ -97,7 +97,7 @@ def prompt_user_exp(message):
     user_exp = input(message)
 
     while not prop.set_expression(user_exp):
-        user_exp = input(f'\nInvalid input. {message}')
+        user_exp = input(f'\nInvalid input. {message}', end='')
 
     return prop
 
@@ -179,6 +179,8 @@ def simplify_negations(exp, to_print=False):
     return exp
 
 def create_truth_table():
+    print('\n[TRUTH TABLE]')
+
     # Prompt user for expression.
     prop = prompt_user_exp('Please enter a statement: ')
 
@@ -188,6 +190,8 @@ def create_truth_table():
     utility.prompt_user_character('Enter anything to go back: ')
 
 def create_deduction():
+    print('\n[DEDUCTION RULE]')
+
     # Prompt user for two expressions and a deduction.
     prop1, prop2, deduction = prompt_user_exp('Please enter the first statement: '), \
                                 prompt_user_exp('Please enter the second statement: '), \
@@ -223,6 +227,8 @@ def create_deduction():
             print('\nDeduction rule does not work.')
 
 def break_statement():
+    print('\n[STATEMENT SIMPLIFICATION]')
+
     # Prompt user for expression.
     prop = prompt_user_exp('Please enter a statement: ')
     print(f'\nStatement: {prop.get_display_exp()}')
